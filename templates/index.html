@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QR Code Generator</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 400px; margin: 50px auto; text-align: center; }
+    input { width: 80%; padding: 8px; margin-bottom: 12px; }
+    button { padding: 8px 16px; cursor: pointer; }
+    #qrDisplay { margin-top: 20px; min-height: 200px; }
+    img { max-width: 250px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+
+  <h2>QR Code Generator</h2>
+  <input type="url" id="targetUrl" placeholder="https://example.com" />
+  <br />
+  <button id="generateBtn">Generate</button>
+
+  <div id="qrDisplay">
+    <p id="statusMsg"></p>
+    <img id="qrImage" style="display: none;" alt="Generated QR Code" />
+  </div>
+
+  <script>
+    const btn = document.getElementById('generateBtn');
+    const input = document.getElementById('targetUrl');
+    const img = document.getElementById('qrImage');
+    const statusMsg = document.getElementById('statusMsg');
+
+    btn.addEventListener('click', async () => {
+      const url = input.value.trim();
+      if (!url) {
+        statusMsg.textContent = 'Please enter a URL first.';
+        return;
+      }
+
+      statusMsg.textContent = 'Generating...';
+      img.style.display = 'none';
+
+      try {
+        const response = await fetch('/generate-qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          statusMsg.textContent = data.error || 'Failed to generate QR code.';
+          return;
+        }
+
+        // Assign base64 string directly to img src
+        img.src = data.qr_image;
+        img.style.display = 'inline-block';
+        statusMsg.textContent = '';
+      } catch (err) {
+        statusMsg.textContent = 'Network error. Check backend connection.';
+      }
+    });
+  </script>
+</body>
+</html>
